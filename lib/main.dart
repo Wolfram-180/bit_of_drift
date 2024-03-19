@@ -1,5 +1,6 @@
 import 'package:bit_of_drift/database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 const String driftingTitle = 'Drift DB test';
@@ -47,56 +48,67 @@ class HomePage extends HookWidget {
     final contentController = useTextEditingController(text: 'content');
 
     return Scaffold(
-        appBar: AppBar(
-          title: const Text(driftingTitle),
-        ),
-        body: Center(
-          child: Column(
+      appBar: AppBar(
+        title: const Text(driftingTitle),
+      ),
+      body: Column(
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  const Text('Title: '),
-                  TextField(
-                    controller: titleController,
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  const Text('Content: '),
-                  TextField(
-                    controller: contentController,
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  TextButton(
-                    onPressed: () => insertRecord(
-                      title: titleController.text,
-                      content: contentController.text,
-                    ),
-                    child: const Text('Insert record'),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      useState((_) async {
-                        dbRecords = await selectRecords();
-                      });
-                    },
-                    child: const Text('Select rows'),
-                  ),
-                ],
-              ),
-              Text(
-                dbRecords.toString(),
+              const Text('Title: '),
+              TextField(
+                controller: titleController,
               ),
             ],
           ),
-        ));
+          Row(
+            children: [
+              const Text('Content: '),
+              TextField(
+                controller: contentController,
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              TextButton(
+                onPressed: () => insertRecord(
+                  title: titleController.text,
+                  content: contentController.text,
+                ),
+                child: const Text('Insert record'),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              TextButton(
+                onPressed: () {
+                  useState((_) async {
+                    dbRecords = await selectRecords();
+                  });
+                },
+                child: const Text('Select rows'),
+              ),
+            ],
+          ),
+          SingleChildScrollView(
+            child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: dbRecords.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Text(
+                        dbRecords[index].toString(),
+                      ),
+                    ),
+                  );
+                }),
+          ),
+        ],
+      ),
+    );
   }
 }
