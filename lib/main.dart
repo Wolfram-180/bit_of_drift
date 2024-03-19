@@ -92,10 +92,8 @@ class HomePage extends HookWidget {
                   ),
                 ],
               ),
-              Expanded(
-                child: Text(
-                  dbRecords.toString(),
-                ),
+              Text(
+                dbRecords.toString(),
               ),
             ],
           ),
