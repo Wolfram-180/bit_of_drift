@@ -1,10 +1,9 @@
 import 'package:bit_of_drift/database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 
 const String driftingTitle = 'Drift DB test';
 final database = AppDatabase();
+List<TodoItem> dbRecords = [];
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,8 +19,25 @@ void main() {
   );
 }
 
-class HomePage extends HookWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  ScrollController scrollController = ScrollController();
+  final titleController = TextEditingController(text: 'title');
+  final contentController = TextEditingController(text: 'content');
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    contentController.dispose();
+    scrollController.dispose();
+    super.dispose();
+  }
 
   Future<void> insertRecord({
     required String title,
@@ -42,72 +58,93 @@ class HomePage extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<TodoItem> dbRecords = [];
-
-    final titleController = useTextEditingController(text: 'title');
-    final contentController = useTextEditingController(text: 'content');
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(driftingTitle),
       ),
-      body: Column(
-        children: [
-          Row(
-            children: [
-              const Text('Title: '),
-              TextField(
-                controller: titleController,
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              const Text('Content: '),
-              TextField(
-                controller: contentController,
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              TextButton(
-                onPressed: () => insertRecord(
-                  title: titleController.text,
-                  content: contentController.text,
-                ),
-                child: const Text('Insert record'),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              TextButton(
-                onPressed: () {
-                  useState((_) async {
-                    dbRecords = await selectRecords();
-                  });
-                },
-                child: const Text('Select rows'),
-              ),
-            ],
-          ),
-          SingleChildScrollView(
-            child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: dbRecords.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Text(
-                        dbRecords[index].toString(),
-                      ),
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  const Text('Title: '),
+                  SizedBox(
+                    width: 200,
+                    child: TextField(
+                      controller: titleController,
                     ),
-                  );
-                }),
-          ),
-        ],
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  const Text('Content: '),
+                  SizedBox(
+                    width: 200,
+                    child: TextField(
+                      controller: contentController,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Row(
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      titleController.text.length < 6
+                          ? ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: const Text(
+                                  'Please at least 6 letters in title'),
+                              action: SnackBarAction(
+                                onPressed: () {},
+                                label: 'Close',
+                              ),
+                            ))
+                          : insertRecord(
+                              title: titleController.text,
+                              content: contentController.text,
+                            );
+                    },
+                    child: const Text('Insert record'),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      dbRecords = await selectRecords();
+                      setState(() {});
+                    },
+                    child: const Text('Select rows'),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: dbRecords.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Text(
+                          dbRecords[index].toString(),
+                        ),
+                      ),
+                    );
+                  }),
+            ),
+          ],
+        ),
       ),
     );
   }
